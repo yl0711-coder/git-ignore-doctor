@@ -1,5 +1,7 @@
 # Git Ignore Doctor
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 A small CLI that tells you what your `.gitignore` forgot, and what Git is still tracking by mistake.
 
 ## Why
@@ -7,6 +9,20 @@ A small CLI that tells you what your `.gitignore` forgot, and what Git is still 
 Many developers add a file to `.gitignore` and expect Git to stop tracking it. Git does not work that way: ignore rules only apply to untracked files. If a file has already been committed, it must be explicitly removed from the index.
 
 Git Ignore Doctor turns that common confusion into a simple repository health report.
+
+## Status
+
+Current version: `v0.1.0`
+
+The first version is intentionally small:
+
+- no network access
+- no background service
+- no automatic cleanup
+- no repository mutation
+- no third-party runtime dependency
+
+It is ready for local repository checks and CI reporting, but it should still be reviewed before being used as a hard blocking gate in large repositories.
 
 ## What It Checks
 
@@ -17,6 +33,14 @@ Git Ignore Doctor turns that common confusion into a simple repository health re
 - Safe `git rm --cached` commands you can review before running
 
 The tool does not modify your repository.
+
+## Requirements
+
+- Python 3.9 or later
+- Git available in `PATH`
+- A Git working tree
+
+The CLI uses Git itself for ignored-file detection. It does not try to reimplement the full `.gitignore` specification.
 
 ## Usage
 
@@ -49,6 +73,19 @@ You can also install the package locally if your Python environment has packagin
 ```bash
 python -m pip install -e .
 git-ignore-doctor --strict
+```
+
+GitHub Actions example:
+
+```yaml
+- name: Check repository hygiene
+  run: bin/git-ignore-doctor --strict
+```
+
+JSON output is useful if you want to build a custom report:
+
+```bash
+bin/git-ignore-doctor --json > git-ignore-report.json
 ```
 
 Exit codes:
@@ -92,6 +129,34 @@ Result: failed
 Git Ignore Doctor intentionally reports a fix plan instead of changing your repository. Commands such as `git rm --cached` are safe when reviewed, but they still affect the Git index. The first version keeps humans in control.
 
 See [docs/research.md](docs/research.md) for the demand research behind this tool.
+
+## Detection Scope
+
+Git Ignore Doctor checks common repository hygiene risks:
+
+- environment files: `.env`, `.env.*`
+- private keys: `*.pem`, `*.key`, `id_rsa`, `id_ed25519`
+- OS metadata: `.DS_Store`, `Thumbs.db`
+- dependency directories: `vendor/`, `node_modules/`, `.venv/`, `venv/`
+- caches: `__pycache__/`, `.pytest_cache/`, `.phpunit.cache/`
+- build output: `coverage/`, `build/`, `dist/`, `.next/`
+- logs: `*.log`
+
+Allowed examples such as `.env.example` are not reported as risky.
+
+## Non-Goals
+
+Git Ignore Doctor does not try to be:
+
+- a `.gitignore` template generator
+- a secret scanner
+- a full security audit tool
+- an automatic cleanup tool
+- a replacement for code review before removing files from Git
+
+## Documentation Maintenance
+
+When the English README changes, update `README.zh-CN.md` in the same pull request. The two README files should describe the same features, usage, and limitations.
 
 ## Development
 
