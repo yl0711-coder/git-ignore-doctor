@@ -8,13 +8,19 @@ from .rules import DEFAULT_RULES, RiskRule, normalize_path
 
 
 class Scanner:
-    def __init__(self, repository: GitRepository, rules: tuple[RiskRule, ...] = DEFAULT_RULES) -> None:
+    def __init__(
+        self,
+        repository: GitRepository,
+        rules: tuple[RiskRule, ...] = DEFAULT_RULES,
+        include_untracked: bool = True,
+    ) -> None:
         self.repository = repository
         self.rules = rules
+        self.include_untracked = include_untracked
 
     def scan(self) -> Report:
         tracked_files = self.repository.tracked_files()
-        untracked_files = self.repository.untracked_files()
+        untracked_files = self.repository.untracked_files() if self.include_untracked else []
         tracked_ignored = self.repository.tracked_ignored_files()
 
         risky_tracked = self._risk_matches(tracked_files)
@@ -111,4 +117,3 @@ def shell_quote(value: str) -> str:
         return value
 
     return "'" + value.replace("'", "'\"'\"'") + "'"
-

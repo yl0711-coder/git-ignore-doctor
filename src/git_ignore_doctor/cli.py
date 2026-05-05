@@ -30,12 +30,17 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Return exit code 1 when any issue is found.",
     )
+    parser.add_argument(
+        "--tracked-only",
+        action="store_true",
+        help="Skip untracked-file checks and focus on files already known to Git.",
+    )
 
     args = parser.parse_args(argv)
 
     try:
         repository = GitRepository(Path(args.path).resolve())
-        report = Scanner(repository).scan()
+        report = Scanner(repository, include_untracked=not args.tracked_only).scan()
     except GitError as error:
         print(f"git-ignore-doctor: {error}", file=sys.stderr)
         return 2
@@ -47,4 +52,3 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     return 0
-

@@ -12,7 +12,7 @@ Git Ignore Doctor turns that common confusion into a simple repository health re
 
 ## Status
 
-Current version: `v0.1.0`
+Current version: `v0.1.1`
 
 The first version is intentionally small:
 
@@ -68,6 +68,16 @@ Use strict mode for CI:
 bin/git-ignore-doctor --strict
 ```
 
+Focus only on files already known to Git:
+
+```bash
+bin/git-ignore-doctor --tracked-only
+```
+
+This mode is useful for CI or old repository audits when you want to catch
+tracked `.env`, dependency folders, build output, and ignored files without
+letting local untracked scratch files affect the report.
+
 You can also install the package locally if your Python environment has packaging tools available:
 
 ```bash
@@ -79,7 +89,7 @@ GitHub Actions example:
 
 ```yaml
 - name: Check repository hygiene
-  run: bin/git-ignore-doctor --strict
+  run: bin/git-ignore-doctor --strict --tracked-only
 ```
 
 JSON output is useful if you want to build a custom report:

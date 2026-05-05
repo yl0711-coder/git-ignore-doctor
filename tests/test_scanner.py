@@ -30,6 +30,24 @@ class ScannerTest(unittest.TestCase):
     def test_shell_quote_quotes_paths_with_spaces(self) -> None:
         self.assertEqual("'my file.log'", shell_quote("my file.log"))
 
+    def test_tracked_only_mode_skips_untracked_risks(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / ".gitignore").write_text("", encoding="utf-8")
+
+            repository = Mock()
+            repository.root = root
+            repository.tracked_files.return_value = ["src/app.php"]
+            repository.untracked_files.return_value = [".env", "debug.log"]
+            repository.tracked_ignored_files.return_value = []
+
+            report = Scanner(repository, include_untracked=False).scan()
+
+            repository.untracked_files.assert_not_called()
+            self.assertEqual([], report.risky_untracked)
+            self.assertEqual([], report.suggested_ignores)
+            self.assertFalse(report.has_issues)
+
 
 if __name__ == "__main__":
     unittest.main()
